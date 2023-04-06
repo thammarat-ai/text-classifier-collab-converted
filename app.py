@@ -103,23 +103,22 @@ def main():
             # add data to database
             # call function add_data
             
-            res_col1, res_col2 = st.columns([2,1])
-            with res_col1:
-                st.info("ข้อความที่ทำการวิเคราะห์")
-                st.write(message)
+            
+            
+            st.info("ข้อความที่ทำการวิเคราะห์")
+            st.write(message)
                     
-                st.success("ผลการวิเคราะห์")
-                if my_predictions[0] == 'Y':
-                    st.write('งานฝ่ายบุคคลณ')
-                    st.success("วิเคราะห์งานเรียบร้อย")
-                else:
-                    st.write('งานอื่นๆ')
-                    st.warning("วิเคราะห์งานเรียบร้อย")
-            with res_col2:
-                # plot job description
+            st.success("ผลการวิเคราะห์")
+            if my_predictions[0] == 'Y':
+                st.write('งานฝ่ายบุคคลณ')
+                st.success("วิเคราะห์งานเรียบร้อย")
+            else:
+                st.write('งานอื่นๆ')
+                st.warning("วิเคราะห์งานเรียบร้อย")   
                                    
     elif choice == "Manage":
         st.subheader("Manage")
+        st.write('This app is built by gig')
         
     else:
         st.subheader("About")
