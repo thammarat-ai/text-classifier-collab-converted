@@ -57,23 +57,29 @@ lr.fit(train_bow, y_train)
 test_bow = cvec.transform(X_test['Text_tokens'])
 test_predictions = lr.predict(test_bow)
 
-# st.write("Matrix")
-# st.write(confusion_matrix(y_test,test_predictions))
-# st.write("========================================================")
-# st.write(classification_report(y_test,test_predictions))
 
+# storge in a database
+import sqlite3
+conn = sqlite3.connect('data.db')
+c = conn.cursor()
 
-# my_text = 'ให้คำปรึกษา แนะนำ ในการดำเนินงานด้านการเงิน'
-# my_tokens = text_process(my_text)
-# my_bow = cvec.transform(pd.Series([my_tokens]))
-# my_predictions = lr.predict(my_bow)
+# Create table
+# Create function from sql
+# def create_table():
+#     c.execute('CREATE TABLE IF NOT EXISTS predictionTable(message TEXT, prediction TEXT, probability NUMBER, software_proba NUMBER, hardware_proba NUMBER, postdate DATE)')
 
-# st.write((my_predictions.shape))
+# def add_data(message,prediction, probability, software_proba, hardware_proba, postdate):
+#     c.execute('INSERT INTO predictionTable(message, prediction, probability, software_proba, hardware_proba, postdate) VALUES (?,?,?,?,?,?)', (message,prediction, probability, software_proba, hardware_proba, postdate))
+#     conn.commit()
 
-# ------
+# def view_all_data():
+#     c.execute('SELECT * FROM predictionTable')
+#     data = c.fetchall()
+#     return data
 
 def main():
     menu = ["Home", "Manage", "About"]
+    #create_table()
     choice = st.sidebar.selectbox("Menu", menu)
     
     if choice == "Home":
@@ -93,10 +99,25 @@ def main():
             my_bow = cvec.transform(pd.Series([my_tokens]))
             my_predictions = lr.predict(my_bow)
             
-            if my_predictions[0] == 'Y':
-                st.write('ใช่ คือ งานหลักของคุณ')
-            else:
-                st.write('ไม่ใช่ นี่คือ งานรองของคุณ')
+            #postdate = datetime.datetime.now()
+            # add data to database
+            # call function add_data
+            
+            res_col1, res_col2 = st.columns([2,1])
+            with res_col1:
+                st.info("ข้อความที่ทำการวิเคราะห์")
+                st.write(message)
+                    
+                st.success("ผลการวิเคราะห์")
+                if my_predictions[0] == 'Y':
+                    st.write('งานฝ่ายบุคคลณ')
+                    st.success("วิเคราะห์งานเรียบร้อย")
+                else:
+                    st.write('งานอื่นๆ')
+                    st.warning("วิเคราะห์งานเรียบร้อย")
+            with res_col2:
+                # plot job description
+                                   
     elif choice == "Manage":
         st.subheader("Manage")
         
