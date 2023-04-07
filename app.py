@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st 
+import datetime as dt
+# from datetime import datetime
+import altair as alt
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -65,21 +68,21 @@ c = conn.cursor()
 
 # Create table
 # Create function from sql
-# def create_table():
-#     c.execute('CREATE TABLE IF NOT EXISTS predictionTable(message TEXT, prediction TEXT, probability NUMBER, software_proba NUMBER, hardware_proba NUMBER, postdate DATE)')
+def create_table():
+    c.execute('CREATE TABLE IF NOT EXISTS predictionTable(message TEXT, tokens TEXT, predicted TEXT, postdate DATE)')
 
-# def add_data(message,prediction, probability, software_proba, hardware_proba, postdate):
-#     c.execute('INSERT INTO predictionTable(message, prediction, probability, software_proba, hardware_proba, postdate) VALUES (?,?,?,?,?,?)', (message,prediction, probability, software_proba, hardware_proba, postdate))
-#     conn.commit()
+def add_data(message,tokens, predicted, postdate):
+    c.execute('INSERT INTO predictionTable(message, tokens, predicted, postdate) VALUES (?,?,?,?)', (message,tokens, predicted, postdate))
+    conn.commit()
 
-# def view_all_data():
-#     c.execute('SELECT * FROM predictionTable')
-#     data = c.fetchall()
-#     return data
+def view_all_data():
+    c.execute('SELECT * FROM predictionTable')
+    data = c.fetchall()
+    return data
 
 def main():
     menu = ["Home", "Report", "About"]
-    #create_table()
+    create_table()
     choice = st.sidebar.selectbox("Menu", menu)
     
     if choice == "Home":
@@ -99,12 +102,10 @@ def main():
             my_bow = cvec.transform(pd.Series([my_tokens]))
             my_predictions = lr.predict(my_bow)
             
-            #postdate = datetime.datetime.now()
             # add data to database
             # call function add_data
-            
-            
-            
+            postdate = dt.datetime.now()
+            add_data(message, my_tokens, my_predictions[0], postdate)
             st.info("ข้อความที่ทำการวิเคราะห์")
             st.write(message)
                     
@@ -118,10 +119,45 @@ def main():
                                    
     elif choice == "Report":
         st.subheader("Report")
-        st.write('กราฟรายวัน')
+        stored_data = view_all_data()
+        new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
+        st.dataframe(new_df)
+        new_df['postdate'] = pd.to_datetime(new_df['postdate'])
+        # st.write(new_df['postdate'])
+        
+        st.title('กราฟรายวัน')
+        # get today's date
+        today = dt.date.today()
+        
+        # filter the datafreame to show only today's data
+        todays_posts = new_df[new_df['postdate'].dt.date == today]
+        # filter only the predicted column        
+        todays_posts = todays_posts[['predicted']]       
+        
+        counts = todays_posts['predicted'].value_counts()
+        st.bar_chart(counts)
+                   
+             
+        
         st.write('กราฟรายสัปดาห์')
+        # filter the dataframe to show only the posts made on workdays
+        # workday_posts = new_df[new_df['postdate'].dt.weekday.between(0, 4)]
+        # st.write(workday_posts)
+        # counts2 = workday_posts['predicted'].value_counts()
+        # st.bar_chart(counts2)
+        
+
         st.write('กราฟรายเดือน')
+        # filter the dataframe to show only the posts made in a particular month
+        # target_month = 4 # for example, we want to show posts from April
+        # monthly_posts = new_df[new_df['postdate'].dt.month == target_month]
+        # st.write(monthly_posts)
+        
         st.write('กราฟรายปี')
+        # filter the dataframe to show only the posts made in a particular year
+        # target_year = 2023 # for example, we want to show posts from the year 2023
+        # yearly_posts = new_df[new_df['postdate'].dt.year == target_year]
+        # st.write(yearly_posts)
         
     else:
         st.subheader("About")
