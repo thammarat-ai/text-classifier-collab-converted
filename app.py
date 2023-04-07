@@ -185,6 +185,21 @@ def main():
     else:
         st.subheader("About")
         st.write('This app is built by gig')
+        stored_data = view_all_data()
+        new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
+        @st.cache_data
+        def convert_df(df):
+        # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode('utf-8')
+        csv = convert_df(new_df)
+        
+        st.download_button(
+            label="Download CSV data",
+            data=csv,
+            file_name='predictionTable.csv',
+            mime='text/csv'
+        )
+        
         
         
     
