@@ -127,7 +127,7 @@ def main():
     elif choice == "Report":
         st.subheader("Report")
         stored_data = view_all_data()
-        new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
+        new_df = pd.DataFrame(stored_data, columns=['message', 'predicted', 'postdate'])
         st.dataframe(new_df)
         new_df['postdate'] = pd.to_datetime(new_df['postdate'])
         # st.write(new_df['postdate'])
@@ -186,14 +186,7 @@ def main():
         st.subheader("About")
         st.write('This app is built by gig')
         
-        # Create a form using Streamlit widgets
-        with st.form(key='my_form'):
-            input_value = st.text_input('Enter a value:')
-            if st.form_submit_button('Submit'):
-                if input_value:
-                    st.success('Form submitted')
-                else:
-                    st.error('Please enter a value')
+        
     
 
 if __name__ == '__main__':
