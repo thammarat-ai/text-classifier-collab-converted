@@ -127,7 +127,7 @@ def main():
     elif choice == "Report":
         st.subheader("Report")
         stored_data = view_all_data()
-        new_df = pd.DataFrame(stored_data, columns=['message', 'predicted', 'postdate'])
+        new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
         st.dataframe(new_df)
         new_df['postdate'] = pd.to_datetime(new_df['postdate'])
         # st.write(new_df['postdate'])
