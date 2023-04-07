@@ -5,6 +5,7 @@ import streamlit as st
 import datetime as dt
 # from datetime import datetime
 import altair as alt
+import plotly.express as px
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -134,10 +135,26 @@ def main():
         # filter only the predicted column        
         todays_posts = todays_posts[['predicted']]       
         
-        counts = todays_posts['predicted'].value_counts()
-        st.bar_chart(counts)
-                   
-             
+        # normal bar chart
+        # counts = todays_posts['predicted'].value_counts()        
+        # st.bar_chart(counts)
+        
+        # bar chart using plotly express
+        counts2 = todays_posts['predicted'].value_counts().reset_index()
+        # Define the color of the bars
+        colors = {'N': 'งานอื่นๆ', 'Y': 'งานบุคคล'}
+        
+        # Map the colors to the predicted values
+        counts2['color'] = counts2['index'].map(colors)          
+        
+        # Create a bar chart using Plotly Express
+        fig = px.bar(counts2, x='index', y='predicted', color='color')
+        
+        st.plotly_chart(fig)
+        
+        
+        
+        
         
         st.write('กราฟรายสัปดาห์')
         # filter the dataframe to show only the posts made on workdays
