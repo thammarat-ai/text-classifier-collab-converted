@@ -89,7 +89,7 @@ def main():
     if choice == "Home":
         st.subheader("Home")
         
-        with st.form(key='mlform'):
+        with st.form(key='mlform', clear_on_submit=True):
             col1, col2 = st.columns([2,1])
             with col1:                
                 message = st.text_area("บันทึกงานที่ได้รับมอบหมาย", "กรอกงานที่ทำ เช่น การจัดทำแผนพัฒนาบุคลากร", height=200)
