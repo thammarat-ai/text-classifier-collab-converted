@@ -78,7 +78,7 @@ c = conn.cursor()
 #     return data
 
 def main():
-    menu = ["Home", "Manage", "About"]
+    menu = ["Home", "Report", "About"]
     #create_table()
     choice = st.sidebar.selectbox("Menu", menu)
     
@@ -88,8 +88,8 @@ def main():
         with st.form(key='mlform'):
             col1, col2 = st.columns([2,1])
             with col1:                
-                message = st.text_area("บันทึกงานที่ได้รับมอบหมาย", "พานิสิตไปดูงาน", height=200)
-                submit_message = st.form_submit_button(label='วิเคราะห์งาน')
+                message = st.text_area("บันทึกงานที่ได้รับมอบหมาย", "กรอกงานที่ทำ เช่น การจัดทำแผนพัฒนาบุคลากร", height=200)
+                submit_message = st.form_submit_button(label='บันทึกงาน')
             with col2:
                 st.write("AI ช่วยวิเคราะห์งานที่ทำเป็นงานงานฝ่ายบุคลากร")
                 st.write("จะทำนายว่าเป็นงานฝ่ายบุคคลหรือ อื่นๆ")
@@ -110,15 +110,18 @@ def main():
                     
             st.success("ผลการวิเคราะห์")
             if my_predictions[0] == 'Y':
-                st.write('งานฝ่ายบุคคลณ')
+                st.write('งานฝ่ายบุคคล')
                 st.success("วิเคราะห์งานเรียบร้อย")
             else:
                 st.write('งานอื่นๆ')
                 st.warning("วิเคราะห์งานเรียบร้อย")   
                                    
-    elif choice == "Manage":
-        st.subheader("Manage")
-        st.write('This app is built by gig')
+    elif choice == "Report":
+        st.subheader("Report")
+        st.write('กราฟรายวัน')
+        st.write('กราฟรายสัปดาห์')
+        st.write('กราฟรายเดือน')
+        st.write('กราฟรายปี')
         
     else:
         st.subheader("About")
