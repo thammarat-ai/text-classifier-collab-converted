@@ -98,7 +98,7 @@ def main():
                 st.write("AI ช่วยวิเคราะห์งานที่ทำเป็นงานงานฝ่ายบุคลากร")
                 st.write("จะทำนายว่าเป็นงานฝ่ายบุคคลหรือ อื่นๆ")
                 
-        if submit_message:
+        if submit_message != None:
             my_tokens = text_process(message)
             my_bow = cvec.transform(pd.Series([my_tokens]))
             my_predictions = lr.predict(my_bow)
