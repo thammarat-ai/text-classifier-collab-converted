@@ -143,7 +143,8 @@ def main():
                 
         new_df = pd.DataFrame(df, columns=[ 'date','message','predicted'])
         
-        st.dataframe(new_df)
+        # display all data
+        # st.dataframe(new_df)
         
         # Convert Timestamp column to datetime format
         new_df['date'] = pd.to_datetime(new_df['date'])
@@ -152,9 +153,10 @@ def main():
         today = datetime.today().strftime('%Y/%m/%d')
         todays_posts = new_df[new_df['date'].dt.strftime('%Y/%m/%d') == today]
         
-        st.write(todays_posts)
+        
         
         st.title('กราฟรายวัน')
+        st.write(todays_posts)
                 
         
         # filter only the predicted column        
@@ -166,7 +168,9 @@ def main():
         
         # bar chart using plotly express
         counts2 = todays_posts['predicted'].value_counts().reset_index()
+        
         st.write(counts2)
+        
         # Define the color of the bars
         colors = { 'Y': 'งานบุคคล', 'N': 'งานอื่นๆ'}
         # colors2 = ['#00A300', '#FF6961']
