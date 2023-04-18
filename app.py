@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st 
 import datetime as dt
-# from datetime import datetime
+from datetime import datetime
 import altair as alt
 import plotly.express as px
+import json
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -61,33 +62,42 @@ lr.fit(train_bow, y_train)
 test_bow = cvec.transform(X_test['Text_tokens'])
 test_predictions = lr.predict(test_bow)
 
+# storge in firestore
+import json
 
-# storge in a database
-import sqlite3
-conn = sqlite3.connect('data.db')
-c = conn.cursor()
+from google.cloud import firestore
+from google.cloud.firestore import Client
+from google.oauth2 import service_account
 
-# Create table
-# Create function from sql
-def create_table():
-    c.execute('CREATE TABLE IF NOT EXISTS predictionTable(message TEXT, tokens TEXT, predicted TEXT, postdate DATE)')
+@st.cache_resource
+def get_db():
+    key_dict = json.loads(st.secrets["textkey"])
+    creds = service_account.Credentials.from_service_account_info(key_dict)
+    db = firestore.Client(credentials=creds, project="text-classified-jobs")
+    return db
 
-def add_data(message,tokens, predicted, postdate):
-    c.execute('INSERT INTO predictionTable(message, tokens, predicted, postdate) VALUES (?,?,?,?)', (message,tokens, predicted, postdate))
-    conn.commit()
+def post_message(db: Client, message, tokens, predicted):
+    payload = {
+        "message": message,
+        "tokens": tokens,
+        "predicted": predicted,
+        "date": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+    }
+    doc_ref = db.collection("jobclassifier").document()
 
-def view_all_data():
-    c.execute('SELECT * FROM predictionTable')
-    data = c.fetchall()
-    return data
+    doc_ref.set(payload)
+    return
+
 
 def main():
     menu = ["Home", "Report", "About"]
-    create_table()
+    # create_table()
     choice = st.sidebar.selectbox("Menu", menu)
     
     if choice == "Home":
         st.subheader("Home")
+        db = get_db()
+        
         
         with st.form(key='mlform', clear_on_submit=True):
             col1, col2 = st.columns([2,1])
@@ -98,35 +108,43 @@ def main():
                 st.write("AI ช่วยวิเคราะห์งานที่ทำเป็นงานงานฝ่ายบุคลากร")
                 st.write("จะทำนายว่าเป็นงานฝ่ายบุคคลหรือ อื่นๆ")
                 
-        if submit_message:
-            
-            if message == "":
-                st.warning("กรุณากรอกงานที่ได้รับมอบหมายก่อน")
-                st.stop()           
-            else:
+            if submit_message:
                 
-                my_tokens = text_process(message)
-                my_bow = cvec.transform(pd.Series([my_tokens]))
-                my_predictions = lr.predict(my_bow)
-                
-                # add data to database
-                # call function add_data
-                postdate = dt.datetime.now()
-                add_data(message, my_tokens, my_predictions[0], postdate)
-                st.info("ข้อความที่ทำการวิเคราะห์")
-                st.write(message)
-                        
-                st.success("ผลการวิเคราะห์")
-                if my_predictions[0] == 'Y':
-                    st.write('งานฝ่ายบุคคล')
-                    st.success("วิเคราะห์งานเรียบร้อย")
+                if message == "":
+                    st.warning("กรุณากรอกงานที่ได้รับมอบหมายก่อน")
+                    st.stop()           
                 else:
-                    st.write('งานอื่นๆ')
-                    st.warning("วิเคราะห์งานเรียบร้อย")   
+                    my_tokens = text_process(message)
+                    my_bow = cvec.transform(pd.Series([my_tokens]))
+                    my_predictions = lr.predict(my_bow)
+                    
+                    # add data to database
+                    # call function add_data
+                    post_message(db, message, my_tokens, my_predictions[0])
+                    
+                    st.info("ข้อความที่ทำการวิเคราะห์")
+                    st.write(message)
+                            
+                    st.success("ผลการวิเคราะห์")
+                    if my_predictions[0] == 'Y':
+                        st.write('งานฝ่ายบุคคล')
+                        st.success("วิเคราะห์งานเรียบร้อย")
+                    else:
+                        st.write('งานอื่นๆ')
+                        st.warning("วิเคราะห์งานเรียบร้อย")   
                                    
     elif choice == "Report":
         st.subheader("Report")
-        stored_data = view_all_data()
+        db = get_db()
+        
+        
+        with st.expander("แสดงข้อความทั้งหมด"):
+            posts_ref = db.collection('jobclassifier')
+        for doc in posts_ref.stream():
+            # st.write("This id is: ", doc.id)
+            st.write(doc.to_dict())
+        
+        
         new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
         st.dataframe(new_df[['message', 'predicted', 'postdate']])
         new_df['postdate'] = pd.to_datetime(new_df['postdate'])
@@ -205,6 +223,7 @@ def main():
     
 
 if __name__ == '__main__':
+    st.set_page_config(page_title="วิเคราะห์ข้อความเพื่อจำแนกงาน", page_icon="👨‍💻")
     main()
 
 
