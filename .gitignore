@@ -1,6 +1,7 @@
 .vscode
 .streamlit
 .git
+.DS_Store
 textclassifier
 key-to-toml.py
 key.json
