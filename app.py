@@ -135,44 +135,47 @@ def main():
                                    
     elif choice == "Report":
         st.subheader("Report")
-        db = get_db()
+        db = get_db() 
+               
+        posts = list(db.collection(u'jobclassifier').stream())
+        posts_dict = list(map(lambda x: x.to_dict(), posts))
+        df = pd.DataFrame(posts_dict)
+                
+        new_df = pd.DataFrame(df, columns=[ 'date','message','predicted'])
         
+        st.dataframe(new_df)
         
-        with st.expander("แสดงข้อความทั้งหมด"):
-            posts_ref = db.collection('jobclassifier')
-        for doc in posts_ref.stream():
-            # st.write("This id is: ", doc.id)
-            st.write(doc.to_dict())
+        # Convert Timestamp column to datetime format
+        new_df['date'] = pd.to_datetime(new_df['date'])
         
+        # Filter DataFrame to only include rows with timestamps matching today's date
+        today = datetime.today().strftime('%Y/%m/%d')
+        todays_posts = new_df[new_df['date'].dt.strftime('%Y/%m/%d') == today]
         
-        new_df = pd.DataFrame(stored_data, columns=['message', 'tokens', 'predicted', 'postdate'])
-        st.dataframe(new_df[['message', 'predicted', 'postdate']])
-        new_df['postdate'] = pd.to_datetime(new_df['postdate'])
-        # st.write(new_df['postdate'])
+        st.write(todays_posts)
         
         st.title('กราฟรายวัน')
-        # get today's date
-        today = dt.date.today()
+                
         
-        # filter the datafreame to show only today's data
-        todays_posts = new_df[new_df['postdate'].dt.date == today]
         # filter only the predicted column        
         todays_posts = todays_posts[['predicted']]       
-        
+        # st.dataframe(todays_posts)
         # normal bar chart
         # counts = todays_posts['predicted'].value_counts()        
         # st.bar_chart(counts)
         
         # bar chart using plotly express
         counts2 = todays_posts['predicted'].value_counts().reset_index()
+        
         # Define the color of the bars
-        colors = {'N': 'งานอื่นๆ', 'Y': 'งานบุคคล'}
+        colors = { 'Y': 'งานบุคคล', 'N': 'งานอื่นๆ'}
+        colors2 = ['#00A300', '#FF6961']
         
         # Map the colors to the predicted values
         counts2['color'] = counts2['index'].map(colors)          
         
-        # Create a bar chart using Plotly Express
-        fig = px.bar(counts2, x='index', y='predicted', color='color')
+        # # Create a bar chart using Plotly Express
+        fig = px.bar(counts2, x='index', y='predicted', color='color', color_discrete_sequence =colors2)
         
         st.plotly_chart(fig)
         
