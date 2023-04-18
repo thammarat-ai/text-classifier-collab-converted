@@ -73,6 +73,11 @@ from google.cloud import firestore
 from google.cloud.firestore import Client
 from google.oauth2 import service_account
 
+
+# Timezone
+import pytz
+tz = pytz.timezone('Asia/Bangkok')
+
 @st.cache_resource
 def get_db():
     key_dict = json.loads(st.secrets["textkey"])
@@ -81,11 +86,12 @@ def get_db():
     return db
 
 def post_message(db: Client, message, tokens, predicted):
+    #-- cali
     payload = {
         "message": message,
         "tokens": tokens,
         "predicted": predicted,
-        "date": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+        "date": datetime.now(tz).strftime("%Y/%m/%d %H:%M:%S"),
         "user": name,
     }
     doc_ref = db.collection("jobclassifier").document()
@@ -176,6 +182,8 @@ if authentication_status == True:
                                     
         elif choice == "Report":
             st.subheader("Report")
+            
+            st.write(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
             db = get_db() 
                 
             posts = list(db.collection(u'jobclassifier').stream())
