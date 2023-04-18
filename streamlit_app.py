@@ -166,20 +166,21 @@ def main():
         
         # bar chart using plotly express
         counts2 = todays_posts['predicted'].value_counts().reset_index()
-        
+        st.write(counts2)
         # Define the color of the bars
         colors = { 'Y': 'งานบุคคล', 'N': 'งานอื่นๆ'}
-        colors2 = ['#00A300', '#FF6961']
+        # colors2 = ['#00A300', '#FF6961']
         
         # Map the colors to the predicted values
         counts2['color'] = counts2['index'].map(colors)          
         
         # # Create a bar chart using Plotly Express
-        fig = px.bar(counts2, x='index', y='predicted', color='color', color_discrete_sequence =colors2)
+        fig = px.bar(counts2, x='index', y='predicted', color='color', color_discrete_map={'งานบุคคล': '#00A300', 'งานอื่นๆ': '#FF6961'})
         
         st.plotly_chart(fig)
         
         
+
         
         
         
