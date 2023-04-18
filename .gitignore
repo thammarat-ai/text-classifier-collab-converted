@@ -1,5 +1,7 @@
 .vscode
 .streamlit
 .git
+textclassifier
+key-to-toml.py
 key.json
 
