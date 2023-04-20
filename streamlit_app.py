@@ -200,19 +200,25 @@ def weekly_report(name):
     df = pd.DataFrame(posts_dict)
                     
     new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
-                
+    # st.write(new_df)
+    
+    # filter only the logged in user
+    user_post_week = new_df[new_df['user'] == name]
+    st.write(user_post_week) 
+       
+            
     # Convert Timestamp column to datetime format
-    new_df['date'] = pd.to_datetime(new_df['date'])
-    
-    
+    new_df['date'] = pd.to_datetime(user_post_week['date'])
+              
     # extract day of the week
     new_df['day_of_week'] = new_df['date'].dt.weekday
     
     
     # filter for workdays (Monday to Friday)
     df_workdays = new_df[new_df['day_of_week'] < 5]
+    # or df_workdays = new_df[new_df['day_of_week'].isin([0,1,2,3,4])]
     
-    # display the data for workdays
+    # display the data for workdays only
     st.write(df_workdays)
          
             
