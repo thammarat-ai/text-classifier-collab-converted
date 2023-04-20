@@ -94,10 +94,133 @@ def post_message(db: Client, message, tokens, predicted):
         "date": datetime.now(tz).strftime("%Y/%m/%d %H:%M:%S"),
         "user": name,
     }
-    doc_ref = db.collection("jobclassifier").document()
+    doc_ref = db.collection("jobclassifier2").document()
 
     doc_ref.set(payload)
     return
+
+
+# ==Display report
+def today_report(name):
+    # st.write(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
+    db = get_db()
+                
+    posts = list(db.collection(u'jobclassifier2').stream())
+    posts_dict = list(map(lambda x: x.to_dict(), posts))
+    df = pd.DataFrame(posts_dict)
+                    
+    new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
+            
+    # display all data
+    # st.dataframe(new_df)
+            
+    # Convert Timestamp column to datetime format
+    new_df['date'] = pd.to_datetime(new_df['date'])
+            
+    # Filter DataFrame to only include rows with timestamps matching today's date
+    today = datetime.today().strftime('%Y/%m/%d')
+    todays_posts = new_df[new_df['date'].dt.strftime('%Y/%m/%d') == today]
+    
+    # filter only the logged in user
+    user_posts = todays_posts[todays_posts['user'] == name]
+    # st.write(user_posts)     
+    
+    st.subheader('งานที่คุณทำวันนี้')
+    
+                            
+    # filter only the predicted column        
+    user_post_predicted = user_posts[['predicted']]       
+    # st.dataframe(todays_posts)
+    # normal bar chart
+    # counts = todays_posts['predicted'].value_counts()        
+    # st.bar_chart(counts)
+            
+    # bar chart using plotly express
+    dailycount = user_post_predicted['predicted'].value_counts().reset_index()
+            
+    # st.write(dailycount)
+            
+    # Define the color of the bars
+    colors = { 'Y': 'งานบุคคล', 'N': 'งานอื่นๆ'}
+    # colors2 = ['#00A300', '#FF6961']
+            
+    # Map the colors to the predicted values
+    dailycount['color'] = dailycount['index'].map(colors)          
+            
+    # # Create a bar chart using Plotly Express
+    fig = px.bar(dailycount, x='index', y='predicted', color='color', color_discrete_map={'งานบุคคล': '#00A300', 'งานอื่นๆ': '#FF6961'})
+            
+    st.plotly_chart(fig)
+    
+    # รายละเอียดงานที่ทำวันนี้
+    st.subheader("รายละเอียดงานที่ทำวันนี้")
+    # st.dataframe(todays_posts[['message','predicted','date']])
+    
+    
+                    
+    st.subheader("งานฝ่ายบุคลากร")
+    # st.write(user_posts)
+        
+    # filter only the predicted column is Y
+    yes = user_posts[user_posts['predicted'] == 'Y']
+    # st.dataframe(yes)
+    
+    df_yes = pd.DataFrame(yes[['message','predicted','date']])
+    # # CSS to inject contained in a string
+    hide_table_row_index = """
+        <style>
+        thead tr th:first-child {display:none}
+        tbody th {display:none}
+        </style>
+        """
+
+    # # Inject CSS with Markdown
+    st.markdown(hide_table_row_index, unsafe_allow_html=True)
+    st.table(df_yes)
+
+    
+    st.subheader("งานอื่นๆ")
+    # filter only the predicted column is N
+    no = user_posts[user_posts['predicted'] == 'N']
+    
+    df_no = pd.DataFrame(no[['message','predicted','date']])
+    
+    
+    # Inject CSS with Markdown
+    st.markdown(hide_table_row_index, unsafe_allow_html=True)
+    st.table(df_no)
+ 
+ 
+def weekly_report(name):
+    
+    db = get_db()
+                
+    posts = list(db.collection(u'jobclassifier2').stream())
+    posts_dict = list(map(lambda x: x.to_dict(), posts))
+    df = pd.DataFrame(posts_dict)
+                    
+    new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
+                
+    # Convert Timestamp column to datetime format
+    new_df['date'] = pd.to_datetime(new_df['date'])
+    
+    
+    # extract day of the week
+    new_df['day_of_week'] = new_df['date'].dt.weekday
+    
+    
+    # filter for workdays (Monday to Friday)
+    df_workdays = new_df[new_df['day_of_week'] < 5]
+    
+    # display the data for workdays
+    st.write(df_workdays)
+         
+            
+    
+
+    
+
+
 
 # for authentification system
 import pickle
@@ -105,8 +228,8 @@ from pathlib import Path
 import streamlit_authenticator as stauth
 
 # --- Authentication ---
-names = ["ปีเตอร์ ปาร์คเกอร์", "บรูซ เวย์น", "คลาร์ก เค้นท์", "โทนี่ สตาร์ค"]
-usernames = ["spiderman", "batman", "superman", "ironman"]
+names = ["โทนี่ สตาร์ค","ronnachai.th"]
+usernames = ["ironman","ronnachai.th"]
 
 # Load hashed passwords from file
 file_path = Path(__file__).parent / "hashed_pw.pkl"
@@ -116,7 +239,7 @@ with file_path.open("rb") as file:
 authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
     "sales_dashboard", "abcdef", cookie_expiry_days=30)
 
-name, authentication_status,usernames = authenticator.login("เข้าสู่ระบบ","main")
+name, authentication_status,usernames = authenticator.login("เข้าสู่ระบบวิเคราะห์ข้อความเพื่อจำแนกงาน","main")
 
 if authentication_status == False:
     st.error("คุณไม่ได้รับอนุญาตให้เข้าถึงหน้านี้")
@@ -125,11 +248,11 @@ if authentication_status == None:
     st.warning("กรุณาเข้าสู่ระบบ")
 
 if authentication_status == True:
-    st.success("ยินดีต้อนรับคุณ {}".format(name))
+    # st.success("ยินดีต้อนรับคุณ {}".format(name))
     
     # --- sidebar ---
     authenticator.logout("ออกจากระบบ","sidebar")
-    st.sidebar.title(f"Welcome {name}")
+    st.sidebar.title(f"ยินดีต้อนรับคุณ {name}")
     
 
 
@@ -137,19 +260,22 @@ if authentication_status == True:
 # --- for authentification system
 
     def main():
-        menu = ["Home", "Report", "About"]
+        menu = ["หน้าหลัก", "รายงาน", "เกี่ยวกับ"]
         # create_table()
         choice = st.sidebar.selectbox("Menu", menu)
         
-        if choice == "Home":
-            st.subheader("Home")
+        st.success("ยินดีต้อนรับคุณ {}".format(name))
+        
+        if choice == "หน้าหลัก":
+            st.subheader("หน้าหลัก")
+            
             db = get_db()
             
             
             with st.form(key='mlform', clear_on_submit=True):
                 col1, col2 = st.columns([2,1])
                 with col1:                
-                    message = st.text_area("บันทึกงานที่ได้รับมอบหมาย", "", height=200)
+                    message = st.text_input("บันทึกงานที่ได้รับมอบหมาย","")
                     submit_message = st.form_submit_button(label='บันทึกงาน')
                 with col2:
                     st.write("AI ช่วยวิเคราะห์งานที่ทำเป็นงานงานฝ่ายบุคลากร")
@@ -178,66 +304,19 @@ if authentication_status == True:
                             st.success("วิเคราะห์งานเรียบร้อย")
                         else:
                             st.write('งานอื่นๆ')
-                            st.warning("วิเคราะห์งานเรียบร้อย")   
-                                    
-        elif choice == "Report":
-            st.subheader("Report")
-            
-            st.write(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
-            db = get_db() 
-                
-            posts = list(db.collection(u'jobclassifier').stream())
-            posts_dict = list(map(lambda x: x.to_dict(), posts))
-            df = pd.DataFrame(posts_dict)
-                    
-            new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
-            
-            # display all data
-            # st.dataframe(new_df)
-            
-            # Convert Timestamp column to datetime format
-            new_df['date'] = pd.to_datetime(new_df['date'])
-            
-            # Filter DataFrame to only include rows with timestamps matching today's date
-            today = datetime.today().strftime('%Y/%m/%d')
-            todays_posts = new_df[new_df['date'].dt.strftime('%Y/%m/%d') == today]
-            user_posts = todays_posts[todays_posts['user'] == name]
-            
-            st.write(user_posts)
-            
-            st.title('กราฟรายวัน')
-            # st.write(todays_posts)
+                            st.warning("วิเคราะห์งานเรียบร้อย")
+            today_report(name)
                             
-            # filter only the predicted column        
-            user_posts = user_posts[['predicted']]       
-            # st.dataframe(todays_posts)
-            # normal bar chart
-            # counts = todays_posts['predicted'].value_counts()        
-            # st.bar_chart(counts)
+                            
+                            
+                                    
+        elif choice == "รายงาน":
             
-            # bar chart using plotly express
-            dailycount = user_posts['predicted'].value_counts().reset_index()
-            
-            st.write(dailycount)
-            
-            # Define the color of the bars
-            colors = { 'Y': 'งานบุคคล', 'N': 'งานอื่นๆ'}
-            # colors2 = ['#00A300', '#FF6961']
-            
-            # Map the colors to the predicted values
-            dailycount['color'] = dailycount['index'].map(colors)          
-            
-            # # Create a bar chart using Plotly Express
-            fig = px.bar(dailycount, x='index', y='predicted', color='color', color_discrete_map={'งานบุคคล': '#00A300', 'งานอื่นๆ': '#FF6961'})
-            
-            st.plotly_chart(fig)
+            st.subheader("รายงาน")
             
             
-
-            
-            
-            
-            st.write('กราฟรายสัปดาห์')
+            st.write('กราฟรายสัปดาห์ วันจันทร์-วันศุกร์ coming soon')
+            weekly_report(name)
             # filter the dataframe to show only the posts made on workdays
             # workday_posts = new_df[new_df['postdate'].dt.weekday.between(0, 4)]
             # st.write(workday_posts)
@@ -245,21 +324,19 @@ if authentication_status == True:
             # st.bar_chart(counts2)
             
 
-            st.write('กราฟรายเดือน')
+            st.write('กราฟรายเดือน coming soon')
             # filter the dataframe to show only the posts made in a particular month
             # target_month = 4 # for example, we want to show posts from April
             # monthly_posts = new_df[new_df['postdate'].dt.month == target_month]
             # st.write(monthly_posts)
             
-            st.write('กราฟรายปี')
-            # filter the dataframe to show only the posts made in a particular year
-            # target_year = 2023 # for example, we want to show posts from the year 2023
-            # yearly_posts = new_df[new_df['postdate'].dt.year == target_year]
-            # st.write(yearly_posts)
+            
             
         else:
-            st.subheader("About")
-            st.write('This app is built by gig')
+            st.subheader("เกี่ยวกับ")
+            st.write('This app is building by hard-working researchers team.')
+            st.write("Line กลุ่ม เพื่อข้อเสนอแนะนำ")
+            st.markdown('<a href="https://forms.gle/yFGum9EoXrsiJX948" target="_blank">ข้อเสนอแนะ</a>', unsafe_allow_html=True)
                 
             
         
