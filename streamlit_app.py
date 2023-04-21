@@ -204,7 +204,7 @@ def weekly_report(name):
     
     # filter only the logged in user
     user_post_week = new_df[new_df['user'] == name]
-    st.write(user_post_week) 
+    # st.write(user_post_week) 
        
             
     # Convert Timestamp column to datetime format
@@ -222,7 +222,7 @@ def weekly_report(name):
     st.write(df_workdays)
          
             
-    
+
 
     
 
@@ -234,8 +234,8 @@ from pathlib import Path
 import streamlit_authenticator as stauth
 
 # --- Authentication ---
-names = ["โทนี่ สตาร์ค","ronnachai.th"]
-usernames = ["ironman","ronnachai.th"]
+names = ["โทนี่ สตาร์ค","ronnachai.th","Supachai","Jutamas","Naphatsamon","Yaowalak","Phalawan","Thanchanathorn","Chanapon","Rattikan","Manatsanan","Yonlada","Narupong","Chaiwat","Tanakrisana","Nalinthorn","Phithak","Nateesut","Krittayot"]
+usernames = ["ironman","ronnachai.th","supachai","jutamas","naphatsamon","yaowalak","phalawan","thanchanathorn","chanapon","rattikan","manatsanan","yonlada","narupong","chaiwat","tanakrisana","nalinthorn","phithak","nateesut","krittayot"]
 
 # Load hashed passwords from file
 file_path = Path(__file__).parent / "hashed_pw.pkl"
@@ -266,7 +266,7 @@ if authentication_status == True:
 # --- for authentification system
 
     def main():
-        menu = ["หน้าหลัก", "รายงาน", "เกี่ยวกับ"]
+        menu = ["หน้าหลัก", "รายงานสรุป", "เกี่ยวกับ"]
         # create_table()
         choice = st.sidebar.selectbox("Menu", menu)
         
@@ -318,11 +318,11 @@ if authentication_status == True:
                                     
         elif choice == "รายงาน":
             
-            st.subheader("รายงาน")
+            st.subheader("รายงานสรุป")
             
             
             st.write('กราฟรายสัปดาห์ วันจันทร์-วันศุกร์ coming soon')
-            weekly_report(name)
+            # weekly_report(name)
             # filter the dataframe to show only the posts made on workdays
             # workday_posts = new_df[new_df['postdate'].dt.weekday.between(0, 4)]
             # st.write(workday_posts)
@@ -342,7 +342,10 @@ if authentication_status == True:
             st.subheader("เกี่ยวกับ")
             st.write('This app is building by hard-working researchers team.')
             st.write("Line กลุ่ม เพื่อข้อเสนอแนะนำ")
-            st.markdown('<a href="https://forms.gle/yFGum9EoXrsiJX948" target="_blank">ข้อเสนอแนะ</a>', unsafe_allow_html=True)
+            st.markdown('<a href="https://forms.gle/yFGum9EoXrsiJX948" target="_blank">ข้อเสนอแนะ Google Form</a>', unsafe_allow_html=True)
+            st.markdown('<a href="https://app.sli.do/event/9aFBBjm1RBDUo1Q5MYoYPn/live/questions" target="_blank">ถามและตอบ, Q&A, ใช้งานได้วันจันทร์ที่ 24 ถึงศุกร์ที่ 28 เมษายน 2566</a>', unsafe_allow_html=True)
+            todayAbout = datetime.now(tz).strftime("%Y/%m/%d %H:%M:%S")
+            st.write(f"วันนี้ : {todayAbout}")
                 
             
         
