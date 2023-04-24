@@ -23,9 +23,15 @@ from sklearn.metrics import confusion_matrix,classification_report
 
 from sklearn.linear_model import LogisticRegression
 
+@st.cache_data
+def get_data_from_csv():
+    df = pd.read_csv('BinaryClass@DB.csv')
+    return df
 
-df = pd.read_csv('BinaryClass@DB.csv')
-st.set_page_config(page_title="วิเคราะห์ข้อความเพื่อจำแนกงาน", page_icon="👨‍💻")
+
+st.set_page_config(page_title="วิเคราะห์ข้อความเพื่อจำแนกงาน", page_icon=":writing_hand:")
+
+df = get_data_from_csv()
 
 
 #set thai_stopwords
@@ -289,11 +295,27 @@ if authentication_status == True:
 
 
 
+
+
+
+
 # --- for authentification system
 
     def main():
         menu = ["หน้าหลัก", "รายงานสรุป", "เกี่ยวกับ"]
-        # create_table()
+        
+        # ---- Hide streamlit menu ----
+        hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        </style>
+        """
+        st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+        
+        
+        
         choice = st.sidebar.selectbox("Menu", menu)
         
         st.success("ยินดีต้อนรับคุณ {}".format(name))
@@ -353,9 +375,53 @@ if authentication_status == True:
                 all_data(name)
                 
         
+            st.subheader('เลือกดูตามช่วงวันที่กำหนด')
+            today = datetime.now(tz).strftime("%Y/%m/%d")    
+            today = datetime.strptime(today, "%Y/%m/%d")
+            # today = datetime.date.today()
+            tomorrow = today + dt.timedelta(days=1)
+            start_date = st.date_input('วันที่เริ่มต้น', today)
+            end_date = st.date_input('วันที่สิ้นสุด', tomorrow)
+            if start_date < end_date:
+                st.success('วันที่เริ่มต้น: `%s`\n\nวันที่สิ้นสุด:`%s`' % (start_date, end_date))
+                db = get_db()
+                
+                posts = list(db.collection(u'jobclassifier2').stream())
+                posts_dict = list(map(lambda x: x.to_dict(), posts))
+                df = pd.DataFrame(posts_dict)
+                    
+                new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
+    
+                user_posts = new_df[new_df['user'] == name]
             
-                  
+                
             
+                # convert the date column to datetime
+                user_posts['date'] = pd.to_datetime(user_posts['date']).dt.date
+          
+                # Query the posts between two dates            
+                filtered_df = user_posts[(user_posts['date'] >= start_date) & (user_posts['date'] <= end_date)]
+                # Print the filtered DataFrame
+                st.write(filtered_df)
+                
+                gday = filtered_df.groupby(['date','predicted'])[['message']].count().reset_index()
+                st.write(gday)
+                
+                
+           
+            else:
+                st.error('ข้อผิดพลาด: วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น')
+            
+            
+            
+            
+                
+                
+                
+                
+                
+                
+                
             st.write('กราฟรายสัปดาห์ coming soon')
             
             st.write('กราฟรายเดือน coming soon')
