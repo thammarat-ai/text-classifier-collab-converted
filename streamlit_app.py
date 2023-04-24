@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st 
 import datetime as dt
-from datetime import datetime
+from datetime import datetime, timedelta
 import altair as alt
 import plotly.express as px
 import json
@@ -101,6 +101,32 @@ def post_message(db: Client, message, tokens, predicted):
 
 
 # ==Display report
+def all_data(name):
+    
+    db = get_db()
+                
+    posts = list(db.collection(u'jobclassifier2').stream())
+    posts_dict = list(map(lambda x: x.to_dict(), posts))
+    df = pd.DataFrame(posts_dict)
+                    
+    new_df = pd.DataFrame(df, columns=[ 'date','message','predicted','user'])
+            
+      
+            
+    # Convert Timestamp column to datetime format
+    new_df['date'] = pd.to_datetime(new_df['date'], errors='coerce')
+    new_df['date'] = pd.to_datetime(new_df['date'])
+    
+    user_posts = new_df[new_df['user'] == name]
+            
+    st.dataframe(user_posts)
+    
+    
+
+
+
+
+
 def today_report(name):
     # st.write(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     db = get_db()
@@ -318,26 +344,25 @@ if authentication_status == True:
                                     
         elif choice == "รายงานสรุป":
             
-            st.subheader("รายงานสรุป")
+            
+            st.subheader("รายงานสรุป")  
             
             
-            st.write('กราฟรายสัปดาห์ วันจันทร์-วันศุกร์ coming soon')
-            # weekly_report(name)
-            # filter the dataframe to show only the posts made on workdays
-            # workday_posts = new_df[new_df['postdate'].dt.weekday.between(0, 4)]
-            # st.write(workday_posts)
-            # counts2 = workday_posts['predicted'].value_counts()
-            # st.bar_chart(counts2)
+            
+            with st.expander("ดูข้อมูลทั้งหมด"):
+                all_data(name)
+                
+        
+            
+                  
+            
+            st.write('กราฟรายสัปดาห์ coming soon')
+            
+            st.write('กราฟรายเดือน coming soon')
+            
             
 
-            st.write('กราฟรายเดือน coming soon')
-            # filter the dataframe to show only the posts made in a particular month
-            # target_month = 4 # for example, we want to show posts from April
-            # monthly_posts = new_df[new_df['postdate'].dt.month == target_month]
-            # st.write(monthly_posts)
-            
-            
-            
+
         else:
             st.subheader("เกี่ยวกับ")
             st.write('This app is building by hard-working researchers team.')
