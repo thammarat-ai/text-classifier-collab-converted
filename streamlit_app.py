@@ -316,7 +316,7 @@ if authentication_status == True:
                             
                             
                                     
-        elif choice == "รายงาน":
+        elif choice == "รายงานสรุป":
             
             st.subheader("รายงานสรุป")
             
