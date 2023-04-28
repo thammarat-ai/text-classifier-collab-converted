@@ -304,15 +304,15 @@ if authentication_status == True:
     def main():
         menu = ["หน้าหลัก", "รายงานสรุป", "เกี่ยวกับ"]
         
-        # ---- Hide streamlit menu ----
-        hide_streamlit_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        </style>
-        """
-        st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+        # # ---- Hide streamlit menu ----
+        # hide_streamlit_style = """
+        # <style>
+        # #MainMenu {visibility: hidden;}
+        # footer {visibility: hidden;}
+        # header {visibility: hidden;}
+        # </style>
+        # """
+        # st.markdown(hide_streamlit_style, unsafe_allow_html=True)
         
         
         
@@ -406,6 +406,10 @@ if authentication_status == True:
                 
                 gday = filtered_df.groupby(['date','predicted'])[['message']].count().reset_index()
                 st.write(gday)
+                
+                group_data = filtered_df.groupby(['date','predicted'])
+                # group_data=group_data.sum()
+                st.dataframe(group_data.sum())
                 
                 
            
