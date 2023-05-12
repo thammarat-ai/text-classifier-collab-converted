@@ -23,7 +23,7 @@ from sklearn.metrics import confusion_matrix,classification_report
 
 from sklearn.linear_model import LogisticRegression
 
-@st.cache_data
+# @st.cache_data
 def get_data_from_csv():
     df = pd.read_csv('BinaryClass@DB.csv')
     return df
